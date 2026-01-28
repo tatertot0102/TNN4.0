@@ -1,0 +1,49 @@
+---
+/**
+ * This tells Astro which section pages to generate at build time.
+ * Required for static hosting (GitHub Pages).
+ */
+export function getStaticPaths() {
+  const sections = [
+    'hardnews',
+    'features',
+    'breaking',
+    'docs',
+    'opinion',
+    'heartwarming',
+    'promo',
+  ];
+
+  return sections.map((section) => ({
+    params: { section },
+  }));
+}
+
+// Read the current section from the URL
+const { section } = Astro.params;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>{section} | TNN</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+
+  <body>
+    <main style="padding: 2rem; font-family: system-ui;">
+      <h1 style="text-transform: capitalize;">
+        {section}
+      </h1>
+
+      <p>
+        This is the <strong>{section}</strong> section page.
+      </p>
+
+      <p style="opacity: 0.6;">
+        (You can replace this with a real section layout later.)
+      </p>
+    </main>
+  </body>
+</html>

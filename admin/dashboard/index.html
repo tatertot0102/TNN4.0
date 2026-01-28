@@ -1,0 +1,119 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>TNN Admin Dashboard</title><link rel="stylesheet" href="/TNN4.0/styles/dashboard.css"><link rel="stylesheet" href="/TNN4.0/styles/video-row.css"></head> <body> <nav class="nav"> <h1>TNN Admin Dashboard</h1> <button id="logout" class="btn danger">Logout</button> </nav> <div class="wrap"> <div class="top"> <div> <h2>Video Catalog</h2> <p style="color: var(--muted); margin: 4px 0 0 0; font-size: 14px;"> <span id="total-count" class="count-badge">0</span> total videos
+</p> </div> <button id="add" class="btn primary">+ Add Video</button> </div> <div class="filters"> <input id="search" class="input" placeholder="🔍 Search by title or link..."> <select id="filter-section" class="select"> <option value="">All sections</option> <option value="hardnews">Hard News</option> <option value="features">Features</option> <option value="breaking">Breaking</option> <option value="docs">Docs</option> <option value="opinion">Opinion</option> <option value="heartwarming">Heartwarming</option> <option value="promo">Promo</option> <option value="catalog">Catalog</option> </select> <select id="filter-placement" class="select"> <option value="">All placements</option> <option value="hero">Hero</option> <option value="todays-mix">Today's Mix</option> <option value="section-featured">Section Featured</option> <option value="section-item">Section Item</option> </select> <select id="filter-status" class="select"> <option value="">All statuses</option> <option value="published">Published</option> <option value="draft">Draft</option> </select> </div> <div class="card"> <div id="table-container"></div> </div> </div> <!-- Modal --> <div id="modal" class="modal"> <div class="modal-box"> <div class="modal-head"> <h3 id="modal-title">Add Video</h3> <button id="close" class="btn">✕</button> </div> <form id="form"> <input type="hidden" id="id"> <div class="grid"> <div class="field"> <label>Section *</label> <select id="section" class="select" required> <option value="">Select section...</option> <option value="hardnews">Hard News</option> <option value="features">Features</option> <option value="breaking">Breaking</option> <option value="docs">Docs</option> <option value="opinion">Opinion</option> <option value="heartwarming">Heartwarming</option> <option value="promo">Promo</option> <option value="catalog">Catalog</option> </select> </div> <div class="field"> <label>Placement *</label> <select id="placement" class="select" required> <option value="section-item">Regular Item</option> <option value="hero">🎬 Also promote as Hero (max 1)</option> <option value="todays-mix">⭐ Also promote in Today's Mix (max 4)</option> <option value="section-featured">📌 Also feature in section (max 1 per section)</option> </select> <p style="font-size:11px; color:var(--muted); margin-top:4px;">
+All videos appear in their section. Placements promote them in special areas.
+</p> </div> </div> <div id="hero-variant-wrap" class="field" style="display:none;"> <label>Hero Variant</label> <select id="hero_variant" class="select"> <option value="mosaic">Mosaic</option> <option value="split">Split</option> <option value="half">Half</option> <option value="full">Full</option> </select> </div> <div class="field"> <label>Title *</label> <input id="title" class="input" required> </div> <div class="field"> <label>Video Link * (YouTube, Instagram, etc.)</label> <input id="href" class="input" required placeholder="https://youtube.com/watch?v=..."> <button type="button" id="extract-btn" class="btn" style="margin-top:8px; width:100%;">
+🔍 Extract Info from YouTube
+</button> </div> <div class="field"> <label>Thumbnail</label> <div class="upload-area" id="upload-area"> <div>📸 Drop image or click to paste URL</div> <input type="file" id="file-input" accept="image/*" style="display:none;"> </div> <input id="thumbnail" class="input" placeholder="Or paste image URL" style="margin-top:8px;"> </div> <div class="field"> <label>Description (Dek)</label> <textarea id="dek" class="input" rows="3" placeholder="Video description..."></textarea> </div> <div class="grid"> <div class="field"> <label>Byline / Author</label> <input id="byline" class="input" placeholder="TNN Staff"> </div> <div class="field"> <label>Runtime</label> <input id="runtime" class="input" placeholder="5:18"> </div> </div> <div class="grid"> <div class="field"> <label>Date</label> <input id="date" class="input" placeholder="Jan 27, 2026"> </div> <div class="field"> <label>Display Order</label> <input id="display_order" class="input" type="number" value="0"> </div> </div> <div class="field" style="display:flex; align-items:center; gap:10px; margin-top:10px;"> <input id="published" type="checkbox" checked> <label style="margin:0;">Published</label> </div> <div class="actions"> <button type="submit" class="btn primary">Save Video</button> </div> </form> </div> </div> <script type="module" src="/TNN4.0/scripts/video-table.js"></script> <script type="module" src="/TNN4.0/scripts/video-modal.js"></script> <script type="module" src="/TNN4.0/scripts/filters.js"></script> <script type="module">const supabaseUrl = "https://wixtoqubaovdigzolmfw.supabase.co";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndpeHRvcXViYW92ZGlnem9sbWZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyMjA1MjIsImV4cCI6MjA4NDc5NjUyMn0.j5wL_IuAwUSYQf8HCdAol5yutFMEdDYZ06nZa2h3-00";
+
+    const { renderVideoTable } = window;
+    const { initModal } = window;
+    const { initFilters } = window;
+
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    // State
+    let videos = [];
+    let filteredVideos = [];
+
+    // Auth check
+    async function checkAuth() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) window.location.href = '/admin/login';
+    }
+    checkAuth();
+
+    // Logout
+    document.getElementById('logout').onclick = async () => {
+      await supabase.auth.signOut();
+      window.location.href = '/admin/login';
+    };
+
+    // Load videos
+    async function loadVideos() {
+      const { data } = await supabase.from('videos').select('*').order('display_order');
+      videos = data || [];
+      applyFilters();
+    }
+
+    // Apply filters
+    function applyFilters() {
+      filteredVideos = initFilters(videos, {
+        search: document.getElementById('search'),
+        section: document.getElementById('filter-section'),
+        placement: document.getElementById('filter-placement'),
+        status: document.getElementById('filter-status')
+      });
+      renderTable();
+    }
+
+    // Render table
+    function renderTable() {
+      document.getElementById('total-count').textContent = videos.length;
+      renderVideoTable(
+        filteredVideos,
+        document.getElementById('table-container'),
+        { onEdit: openEdit, onDelete: deleteVideo }
+      );
+    }
+
+    // CRUD operations
+    async function openEdit(id) {
+      const video = videos.find(v => String(v.id) === String(id));
+      if (!video) {
+        console.error('Video not found:', id);
+        return;
+      }
+      
+      console.log('Editing video:', video);
+      
+      // Populate the form
+      document.getElementById('modal-title').textContent = 'Edit Video';
+      document.getElementById('id').value = video.id;
+      document.getElementById('section').value = video.section || '';
+      document.getElementById('placement').value = video.placement || 'section-item';
+      document.getElementById('hero_variant').value = video.hero_variant || 'mosaic';
+      document.getElementById('title').value = video.title || '';
+      document.getElementById('href').value = video.href || '';
+      document.getElementById('thumbnail').value = video.thumbnail || '';
+      document.getElementById('dek').value = video.dek || '';
+      document.getElementById('byline').value = video.byline || '';
+      document.getElementById('runtime').value = video.runtime || '';
+      document.getElementById('date').value = video.date || '';
+      document.getElementById('display_order').value = video.display_order || 0;
+      document.getElementById('published').checked = !!video.published;
+
+      console.log('Form populated with:', {
+        title: document.getElementById('title').value,
+        section: document.getElementById('section').value,
+        placement: document.getElementById('placement').value
+      });
+
+      // Trigger placement change to show/hide hero variant
+      document.getElementById('placement').dispatchEvent(new Event('change'));
+      
+      // Show modal
+      document.getElementById('modal').classList.add('active');
+    }
+
+    async function deleteVideo(id) {
+      if (!confirm('Delete this video?')) return;
+      await supabase.from('videos').delete().eq('id', id);
+      loadVideos();
+    }
+
+    // Initialize modal
+    initModal(supabase, loadVideos);
+
+    // Filter events
+    ['search', 'filter-section', 'filter-placement', 'filter-status'].forEach(id => {
+      const el = document.getElementById(id);
+      el.addEventListener('input', applyFilters);
+      el.addEventListener('change', applyFilters);
+    });
+
+    // Start
+    loadVideos();
+  </script> </body> </html>

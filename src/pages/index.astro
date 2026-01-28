@@ -1,16 +1,115 @@
 ---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import HeroSplit from "../components/HeroSplit.astro";
+import TodaysMix from "../components/TodaysMix.astro";
+import CtaBand from "../components/CtaBand.astro";
+import StickySectionTabs from "../components/StickySectionTabs.astro";
+import { supabase } from "../lib/supabase";
 
+// 1. Fetch HERO (only one with placement='hero')
+const { data: heroVideo } = await supabase
+  .from('videos')
+  .select('*')
+  .eq('placement', 'hero')
+  .eq('published', true)
+  .single();
+
+// 2. Fetch TODAY'S MIX (exactly 4 items with placement='todays-mix')
+const { data: todaysMixRaw } = await supabase
+  .from('videos')
+  .select('*')
+  .eq('placement', 'todays-mix')
+  .eq('published', true)
+  .order('display_order', { ascending: true })
+  .limit(4);
+
+// Transform for TodaysMix component
+const todaysMix = (todaysMixRaw || []).map(v => ({
+  title: v.title,
+  dek: v.dek,
+  byline: v.byline,
+  runtime: v.runtime,
+  thumbnail: v.thumbnail,
+  href: v.href,
+  section: v.category
+}));
+
+// 3. Fetch sections data
+const sections = ['hardnews', 'features', 'breaking', 'docs', 'opinion', 'heartwarming', 'promo'];
+const sectionsData = [];
+
+for (const section of sections) {
+  // Get ALL videos for this section (that should show in catalog)
+  const { data: allSectionVideos } = await supabase
+    .from('videos')
+    .select('*')
+    .eq('section', section)
+    .eq('published', true)
+    .eq('show_in_catalog', true)  // Only show videos marked for catalog
+    .order('display_order', { ascending: true });
+
+  // Find the featured item
+  const featured = allSectionVideos?.find(v => v.placement === 'section-featured');
+  
+  // Get all items (including the featured one, it appears in both places)
+  const items = allSectionVideos || [];
+
+  sectionsData.push({
+    id: section,
+    label: section === 'hardnews' ? 'Hard News' : 
+           section.charAt(0).toUpperCase() + section.slice(1),
+    featured: featured || undefined,
+    items: items
+  });
+}
+
+const ctaItems = [
+  {
+    kicker: "Info",
+    title: "What is TNN?",
+    body: "Learn how Tech News Network works, what we publish, and how our reporting teams run.",
+    cta: "Go to Info →",
+    href: "/info",
+  },
+  {
+    kicker: "Apply",
+    title: "Join the newsroom",
+    body: "Writers, anchors, camera ops, editors, designers. We train new members and build real skills.",
+    cta: "Apply →",
+    href: "/info#apply",
+  },
+  {
+    kicker: "Submit",
+    title: "Send a tip or pitch",
+    body: "Have a story idea? Drop a lead or pitch a segment—fast, direct, and student-run.",
+    cta: "Submit →",
+    href: "/info#submit",
+  },
+];
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout title="TNN — Home" headerTheme="dark">
+  {heroVideo && (
+    <HeroSplit
+      slot="hero"
+      variant={heroVideo.hero_variant || 'mosaic'}
+      category={heroVideo.category}
+      title={heroVideo.title}
+      dek={heroVideo.dek}
+      byline={heroVideo.byline}
+      date={heroVideo.date}
+      runtime={heroVideo.runtime}
+      thumbnail={heroVideo.thumbnail}
+      href={heroVideo.href}
+    />
+  )}
+
+  <section id="hero" data-hero>
+    <div class="h-px w-full bg-black/10" />
+    <TodaysMix items={todaysMix} />
+    <CtaBand items={ctaItems} />
+    <div data-hero-sentinel aria-hidden="true" style="height: 1px;"></div>
+  </section>
+  
+  <StickySectionTabs sections={sectionsData} initialSection="hardnews" />
+</BaseLayout>

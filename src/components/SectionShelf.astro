@@ -1,0 +1,433 @@
+---
+import VideoCard from "./VideoCard.astro";
+
+const {
+  label,            // e.g. "Hard News"
+  href,             // e.g. "/section/hardnews"
+  featured,         // { title, dek, byline, runtime, thumbnail, href }
+  items = [],       // array of objects with same shape as VideoCard props
+} = Astro.props;
+---
+
+<section class="section-banner">
+  <div class="section-banner__container">
+    <!-- Section Header with ornamental lines -->
+    <header class="section-banner__header">
+      <div class="section-banner__ornament">
+        <span class="section-banner__line"></span>
+        <span class="section-banner__diamond"></span>
+        <span class="section-banner__line"></span>
+      </div>
+      <h2 class="section-banner__title">
+        {label?.toUpperCase?.() ?? label}
+      </h2>
+    </header>
+
+    <!-- Featured Story Banner -->
+    {featured && (
+      <article class="featured-banner">
+        <a href={featured.href} class="featured-banner__link">
+          <div class="featured-banner__media">
+            <img
+              src={featured.thumbnail}
+              alt={featured.title}
+              loading="lazy"
+              class="featured-banner__img"
+            />
+            <div class="featured-banner__gradient"></div>
+            {featured.runtime && (
+              <div class="featured-banner__badge">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" class="featured-banner__play">
+                  <path d="M2 1.5v9l8-4.5-8-4.5z" fill="currentColor"/>
+                </svg>
+                <span>{featured.runtime}</span>
+              </div>
+            )}
+          </div>
+          
+          <div class="featured-banner__content">
+            <div class="featured-banner__meta">
+              {featured.section && <span class="featured-banner__section">{featured.section}</span>}
+            </div>
+            <h3 class="featured-banner__headline">{featured.title}</h3>
+            {featured.dek && <p class="featured-banner__dek">{featured.dek}</p>}
+            {featured.byline && <div class="featured-banner__byline">By {featured.byline}</div>}
+          </div>
+        </a>
+      </article>
+    )}
+
+    <!-- Grid of smaller stories below -->
+    {items.length > 0 && (
+      <div class="stories-grid">
+        {items.slice(0, 6).map((item) => (
+          <article class="story-card">
+            <a href={item.href} class="story-card__link">
+              <div class="story-card__media">
+                <img
+                  src={item.thumbnail}
+                  alt={item.title}
+                  loading="lazy"
+                  class="story-card__img"
+                />
+                {item.runtime && (
+                  <div class="story-card__badge">
+                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 1.5v9l8-4.5-8-4.5z" fill="currentColor"/>
+                    </svg>
+                    <span>{item.runtime}</span>
+                  </div>
+                )}
+              </div>
+              
+              <div class="story-card__content">
+                {item.section && <div class="story-card__section">{item.section}</div>}
+                <h3 class="story-card__title">{item.title}</h3>
+                {item.dek && <p class="story-card__dek">{item.dek}</p>}
+                {item.byline && <div class="story-card__byline">By {item.byline}</div>}
+              </div>
+            </a>
+          </article>
+        ))}
+      </div>
+    )}
+
+    <!-- Explore link -->
+    {href && (
+      <div class="section-banner__footer">
+        <a href={href} class="section-banner__explore">
+          Explore {label} <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    )}
+  </div>
+</section>
+
+<style>
+  :root {
+    --midnight: #0d1b2a;
+    --navy: #1b263b;
+    --slate: #415a77;
+    --text-muted: #64748b;
+    --bg: #ffffff;
+    --surface: #f8f9fa;
+    --border: #e2e8f0;
+  }
+
+  /* Section Container */
+  .section-banner {
+    background: var(--bg);
+    padding: clamp(3rem, 6vw, 5rem) 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .section-banner__container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 clamp(1.25rem, 4vw, 2rem);
+  }
+
+  /* Section Header */
+  .section-banner__header {
+    text-align: center;
+    margin-bottom: clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .section-banner__ornament {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .section-banner__line {
+    width: clamp(40px, 8vw, 80px);
+    height: 1px;
+    background: var(--midnight);
+  }
+
+  .section-banner__diamond {
+    width: 6px;
+    height: 6px;
+    background: var(--midnight);
+    transform: rotate(45deg);
+  }
+
+  .section-banner__title {
+    font-family: ui-serif, Georgia, "Times New Roman", Times, serif;
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--midnight);
+    margin: 0;
+  }
+
+  /* Featured Banner - Large horizontal card */
+  .featured-banner {
+    margin-bottom: clamp(2.5rem, 5vw, 4rem);
+    background: var(--surface);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(13, 27, 42, 0.08);
+    transition: transform 300ms ease, box-shadow 300ms ease;
+  }
+
+  .featured-banner:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(13, 27, 42, 0.12);
+  }
+
+  .featured-banner__link {
+    display: grid;
+    grid-template-columns: 55% 1fr;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .featured-banner__media {
+    position: relative;
+    background: var(--navy);
+    overflow: hidden;
+  }
+
+  .featured-banner__img {
+    width: 100%;
+    height: 100%;
+    min-height: 380px;
+    object-fit: cover;
+    transition: transform 600ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .featured-banner:hover .featured-banner__img {
+    transform: scale(1.05);
+  }
+
+  .featured-banner__gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to right,
+      transparent 0%,
+      rgba(13, 27, 42, 0.3) 100%
+    );
+  }
+
+  .featured-banner__badge {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(13, 27, 42, 0.92);
+    backdrop-filter: blur(8px);
+    padding: 8px 12px;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .featured-banner__play {
+    flex-shrink: 0;
+  }
+
+  .featured-banner__content {
+    padding: clamp(2rem, 4vw, 3.5rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .featured-banner__meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .featured-banner__section {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--navy);
+  }
+
+  .featured-banner__headline {
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--midnight);
+    margin: 0;
+  }
+
+  .featured-banner__dek {
+    font-size: 1.125rem;
+    line-height: 1.6;
+    color: var(--slate);
+    margin: 0;
+  }
+
+  .featured-banner__byline {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+  }
+
+  /* Stories Grid - 3 columns like The Critics */
+  .stories-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(2rem, 4vw, 3rem);
+    margin-bottom: 3rem;
+  }
+
+  .story-card__link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .story-card__media {
+    position: relative;
+    background: var(--surface);
+    overflow: hidden;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+  }
+
+  .story-card__img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    transition: transform 400ms ease;
+  }
+
+  .story-card:hover .story-card__img {
+    transform: scale(1.06);
+  }
+
+  .story-card__badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(13, 27, 42, 0.9);
+    padding: 5px 8px;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .story-card__content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+
+  .story-card__section {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--navy);
+  }
+
+  .story-card__title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--midnight);
+    margin: 0;
+    transition: color 200ms ease;
+  }
+
+  .story-card:hover .story-card__title {
+    color: var(--navy);
+  }
+
+  .story-card__dek {
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .story-card__byline {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--slate);
+  }
+
+  /* Footer */
+  .section-banner__footer {
+    text-align: center;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .section-banner__explore {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 2rem;
+    border: 2px solid var(--midnight);
+    border-radius: 50px;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--midnight);
+    text-decoration: none;
+    transition: all 250ms ease;
+  }
+
+  .section-banner__explore:hover {
+    background: var(--midnight);
+    color: #fff;
+    transform: translateY(-2px);
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .featured-banner__link {
+      grid-template-columns: 50% 1fr;
+    }
+
+    .stories-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .featured-banner__link {
+      grid-template-columns: 1fr;
+    }
+
+    .featured-banner__img {
+      min-height: 280px;
+    }
+
+    .featured-banner__content {
+      padding: 2rem 1.5rem;
+    }
+
+    .stories-grid {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    .story-card__dek {
+      display: none;
+    }
+  }
+</style>

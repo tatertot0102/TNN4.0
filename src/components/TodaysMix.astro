@@ -1,0 +1,457 @@
+---
+const { items = [] } = Astro.props;
+const mix = items.slice(0, 4);
+---
+
+<section class="mix">
+  <div class="mix__container">
+    <header class="mix__head">
+      <h2 class="mix__title">Today's Mix</h2>
+      <div class="mix__accent"></div>
+    </header>
+
+    <div class="mix__grid">
+      {mix.map((item, idx) => (
+        <article class={`card card--${idx === 0 || idx === 3 ? 'torn' : 'clean'}`} data-index={idx}>
+          <a class="card__link" href={item.href} aria-label={item.title}>
+            <div class="card__media">
+              <img
+                src={item.thumbnail}
+                alt={item.title}
+                loading="lazy"
+                class="card__img"
+              />
+              {item.runtime && (
+                <div class="card__badge">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" class="card__play-icon">
+                    <path d="M2 1.5v9l8-4.5-8-4.5z" fill="currentColor"/>
+                  </svg>
+                  <span class="card__time">{item.runtime}</span>
+                </div>
+              )}
+            </div>
+
+            <div class="card__content">
+              <div class="card__top">
+                {item.section && <span class="card__section">{item.section}</span>}
+                {item.date && <span class="card__date">{item.date}</span>}
+              </div>
+
+              <h3 class="card__title">{item.title}</h3>
+
+              {item.dek && <p class="card__dek">{item.dek}</p>}
+
+              {item.byline && (
+                <div class="card__byline">{item.byline}</div>
+              )}
+            </div>
+          </a>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  :root {
+    --midnight: #191970;
+    --midnight-dark: #0d0d3d;
+    --text: #1a1a1a;
+    --text-muted: #666;
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --border: #e0e0e0;
+
+    --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Garamond, Georgia, serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --font-brutal: "Arial Black", "Arial Bold", Gadget, sans-serif;
+  }
+
+  .mix {
+    background: var(--bg);
+    padding: clamp(3rem, 8vw, 6rem) 0;
+    font-family: var(--font-sans);
+  }
+
+  .mix__container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 clamp(1.5rem, 4vw, 3rem);
+  }
+
+  /* Header - Brutalist style */
+  .mix__head {
+    margin-bottom: clamp(2.5rem, 5vw, 4rem);
+    text-align: center;
+    position: relative;
+  }
+
+  .mix__title {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 900;
+    font-family: var(--font-brutal);
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin: 0 0 1rem 0;
+    position: relative;
+    display: inline-block;
+  }
+
+  /* Brutal midnight blue underline slash */
+  .mix__accent {
+    height: 8px;
+    width: clamp(100px, 15vw, 200px);
+    background: var(--midnight);
+    margin: 0 auto;
+    transform: skewX(-8deg);
+    position: relative;
+  }
+
+  .mix__accent::after {
+    content: '';
+    position: absolute;
+    right: -12px;
+    top: 0;
+    width: 8px;
+    height: 8px;
+    background: var(--midnight);
+    transform: rotate(45deg);
+  }
+
+  /* Grid - 4 columns */
+  .mix__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: clamp(2rem, 4vw, 3rem);
+  }
+
+  /* Card base */
+  .card {
+    background: var(--surface);
+    border: 3px solid var(--text);
+    position: relative;
+    overflow: visible;
+    transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 200ms ease;
+  }
+
+  .card:hover {
+    transform: translateY(-8px) rotate(-0.8deg);
+    box-shadow: 10px 10px 0 var(--midnight);
+  }
+
+  /* Torn edges - only cards 0 and 3 */
+  .card--torn {
+    clip-path: polygon(
+      0% 2%,
+      1% 0%,
+      2% 1.5%,
+      3% 0.5%,
+      4% 2%,
+      5% 1%,
+      6% 1.8%,
+      7% 0.8%,
+      8% 2%,
+      9% 1.2%,
+      10% 0.5%,
+      11% 1.5%,
+      12% 0.8%,
+      13% 2%,
+      14% 1%,
+      15% 1.5%,
+      16% 0.5%,
+      17% 1.8%,
+      18% 1%,
+      19% 1.5%,
+      20% 0.8%,
+      100% 0%,
+      100% 100%,
+      0% 100%
+    );
+  }
+
+  /* Different torn pattern for last card (right edge torn) */
+  .card--torn[data-index="3"] {
+    clip-path: polygon(
+      0% 0%,
+      100% 0%,
+      100% 2%,
+      99% 1%,
+      98% 1.5%,
+      97% 0.5%,
+      96% 2%,
+      95% 1%,
+      94% 1.8%,
+      93% 0.8%,
+      92% 2%,
+      91% 1.2%,
+      90% 0.5%,
+      89% 1.5%,
+      88% 0.8%,
+      87% 2%,
+      86% 1%,
+      85% 1.5%,
+      84% 0.5%,
+      83% 1.8%,
+      82% 1%,
+      81% 1.5%,
+      80% 0.8%,
+      100% 0%,
+      100% 100%,
+      99% 98%,
+      98% 99%,
+      97% 98.5%,
+      96% 99.2%,
+      95% 98%,
+      94% 99%,
+      93% 98.5%,
+      92% 99.2%,
+      91% 98.2%,
+      90% 99%,
+      89% 98.5%,
+      88% 99.2%,
+      87% 98%,
+      86% 99%,
+      85% 98.5%,
+      84% 99.2%,
+      83% 98.5%,
+      82% 99%,
+      81% 98.2%,
+      80% 99%,
+      100% 100%,
+      0% 100%,
+      0% 0%
+    );
+  }
+
+  .card__link {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    height: 100%;
+  }
+
+  /* Media */
+  .card__media {
+    position: relative;
+    background: var(--text);
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+  }
+
+  /* Subtle category color overlays */
+  .card[data-index="0"] .card__media::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(25, 25, 112, 0.08) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .card[data-index="1"] .card__media::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(138, 43, 226, 0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .card[data-index="2"] .card__media::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0, 139, 139, 0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .card[data-index="3"] .card__media::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(220, 20, 60, 0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .card__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: grayscale(20%) contrast(1.1);
+    transition: transform 400ms ease, filter 400ms ease;
+  }
+
+  .card:hover .card__img {
+    transform: scale(1.05);
+    filter: grayscale(0%) contrast(1.05);
+  }
+
+  /* Badge */
+  .card__badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--midnight);
+    padding: 6px 10px;
+    color: #fff;
+    font-weight: 800;
+    border: 2px solid #fff;
+  }
+
+  .card__time {
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+  }
+
+  /* Content */
+  .card__content {
+    padding: clamp(1rem, 2.5vw, 1.5rem);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex: 1;
+  }
+
+  .card__top {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .card__section {
+    font-size: 0.7rem;
+    font-family: var(--font-sans);
+    letter-spacing: 0.1em;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: var(--midnight);
+    background: var(--midnight);
+    color: #fff;
+    padding: 3px 8px;
+    transform: skewX(-5deg);
+  }
+
+  .card__date {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .card__title {
+    font-size: clamp(1.125rem, 1.8vw, 1.5rem);
+    font-family: var(--font-serif);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--text);
+    margin: 0;
+    position: relative;
+    padding-bottom: 0.5rem;
+  }
+
+  /* Brutal midnight blue underline */
+  .card__title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40%;
+    height: 4px;
+    background: var(--midnight);
+    transform: skewX(-8deg);
+    transition: width 300ms ease;
+  }
+
+  .card:hover .card__title::after {
+    width: 70%;
+  }
+
+  .card__dek {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card__byline {
+    font-size: 0.8125rem;
+    color: var(--text);
+    font-weight: 700;
+    margin-top: auto;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 1200px) {
+    .mix__grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem;
+    }
+
+    .card--torn[data-index="3"] {
+      clip-path: polygon(
+        0% 0%,
+        2% 1%,
+        4% 0.5%,
+        6% 2%,
+        8% 1%,
+        10% 1.5%,
+        12% 0.8%,
+        14% 2%,
+        16% 1%,
+        18% 1.8%,
+        20% 0.5%,
+        22% 2%,
+        24% 1.2%,
+        26% 1.5%,
+        28% 0.8%,
+        30% 2%,
+        100% 0%,
+        100% 100%,
+        30% 100%,
+        28% 99%,
+        26% 99.5%,
+        24% 98.8%,
+        22% 99.2%,
+        20% 99.5%,
+        18% 98.5%,
+        16% 99.2%,
+        14% 98.5%,
+        12% 99.3%,
+        10% 98.8%,
+        8% 99.5%,
+        6% 98.2%,
+        4% 99%,
+        2% 98.5%,
+        0% 99%
+      );
+    }
+  }
+
+  @media (max-width: 768px) {
+    .mix__grid {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    .card__dek {
+      -webkit-line-clamp: 2;
+    }
+  }
+</style>
